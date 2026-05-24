@@ -1,0 +1,40 @@
+replicaCount: 2
+
+image:
+  repository: backend-devops-interview
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+env:
+  djangoDebug: false
+  allowedHosts: "*"
+  dbName: backend_devops_interview
+  dbUser: postgres
+  dbHost: postgres
+  dbPort: "5432"
+
+secrets:
+  djangoSecretKey: "changeme"
+  dbPassword: "postgres"

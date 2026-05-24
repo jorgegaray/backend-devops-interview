@@ -1,0 +1,106 @@
+# Backend/DevOps Engineer Interview
+
+A small content service: users, posts, comments, tags. Django + Ninja + Postgres.
+
+## Running it locally
+
+Prereqs:
+
+- Docker
+
+Setup: 
+```sh
+# build and up db and services
+docker compose up --build -d
+
+# load model
+docker compose run --rm web sh -c "python manage.py migrate"
+
+# load data dummy
+docker compose run --rm web sh -c "python manage.py seed"
+```
+
+API docs at <http://localhost:8000/api/docs>.
+
+## Production deployment
+
+This repo also includes a Helm chart for Kubernetes deployment under `helm/`.
+
+Install the chart with:
+
+```sh
+helm install backend-devops-interview helm
+```
+
+Customize values in `helm/values.yaml` or override them with `--set`.
+
+API docs are available on the exposed service once the app is deployed.
+
+## CI/CD
+
+This project includes GitHub Actions workflows for:
+
+- `CI` (`.github/workflows/ci.yml`): linting with `ruff`, tests with `pytest`, and a Postgres service for Django test execution.
+- `CD` (`.github/workflows/cd.yml`): building and pushing a Docker image, validating the Helm chart, and deploying the release with `helm upgrade --install`.
+
+Required GitHub secrets for deployment:
+
+- `REGISTRY_SERVER` — container registry host, e.g. `ghcr.io` or `docker.io`
+- `REGISTRY_USERNAME`
+- `REGISTRY_PASSWORD`
+- `KUBE_CONFIG` — base64-encoded kubeconfig for the target cluster
+
+Local commands that mirror CI/CD steps:
+
+```sh
+python -m pip install --upgrade pip
+python -m pip install uv
+uv sync
+uv run ruff .
+uv run pytest
+helm lint helm
+helm template backend-devops-interview helm --set image.repository=<registry>/<repo> --set image.tag=<tag>
+```
+
+Seeding writes ~100k posts and ~500k comments. Expect a few minutes.
+
+## What the API does
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET    | `/api/posts` | Published posts, newest first |
+| GET    | `/api/posts/search?q=` | Full-text-ish search across title and body |
+| GET    | `/api/posts/by-tag/{slug}` | Posts carrying a given tag |
+| GET    | `/api/posts/{id}` | Post detail with comments |
+| POST   | `/api/posts` | Create a post |
+| POST   | `/api/posts/{id}/comments` | Add a comment to a post |
+| GET    | `/api/users/{id}` | User profile with post and comment counts |
+| GET    | `/api/users/find?email=` | Look up a user by email |
+
+## The assignment
+
+We want to see how you take a working prototype and turn it into something a team can develop on and operate. Pick the changes that give the strongest signal about how you'd improve this codebase if you owned it. There are three areas we care about:
+
+1. **Developer experience.** Getting this running on a fresh laptop is harder than it should be. Make it easier.
+2. **Performance.** Once the database is seeded, exercise the endpoints. Some of them are slow. Find out why and fix what you can.
+3. **Production readiness.** This service is a long way from something you'd put behind a load balancer. Move it closer — pick whichever deployment target you'd reach for at work (Helm chart, ECS task def, K8s manifests, Fly, Render, plain Docker + systemd — your call).
+
+**Depth beats breadth.** Pick 2–3 things and go deep rather than touching ten things shallowly. Write a short `NOTES.md` covering:
+
+- What you did and why.
+- What you deliberately *didn't* do.
+- What you'd do next if you had another day.
+
+## Non-goals
+
+- **Authentication / authorization** is intentionally absent. If you want to suggest a direction in `NOTES.md`, great — but no need to implement anything.
+- **Test coverage** is not what we're grading. The smoke tests are there so you have something to wire into CI.
+- **Reshaping the domain model** isn't expected. Adjust it if a perf fix needs it; otherwise leave it.
+
+## Time
+
+Soft cap of 2–6 hours, depending on your experience and what tooling you have available (AI agents are fine — say so in `NOTES.md` and include chat transcripts). We're looking at signal, not hours.
+
+## Deliverable
+
+Whatever's easy for you to share: a GitHub link, a [gitfront](https://gitfront.io) link, a git bundle, even `git format-patch`. Please don't open a PR against this repo.

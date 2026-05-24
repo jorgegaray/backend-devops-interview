@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backend_devops_interview
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d backend_devops_interview"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.14
+      - name: Install Python tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+      - name: Sync dependencies with uv
+        run: uv sync
+      - name: Install lint/test tools
+        run: uv run pip install ruff pytest pytest-django
+      - name: Security scan
+        run: |
+          uv run pip install pip-audit bandit
+          uv run pip-audit
+          uv run bandit -r blog core
+      - name: Run lint
+        run: uv run ruff check .
+      - name: Run tests
+        env:
+          DB_NAME: backend_devops_interview
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DJANGO_DEBUG: "False"
+        run: uv run pytest

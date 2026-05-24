@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "backend-devops-interview.fullname" . }}-config
+  labels:
+    {{- include "backend-devops-interview.labels" . | nindent 4 }}
+data:
+  DJANGO_DEBUG: "{{ .Values.env.djangoDebug }}"
+  DJANGO_ALLOWED_HOSTS: "{{ .Values.env.allowedHosts }}"
+  DB_NAME: "{{ .Values.env.dbName }}"
+  DB_USER: "{{ .Values.env.dbUser }}"
+  DB_HOST: "{{ .Values.env.dbHost }}"
+  DB_PORT: "{{ .Values.env.dbPort }}"
