@@ -37,3 +37,6 @@ Realiza un setup, instala dependencias, chequeo de seguridad, chequeo de reglas 
 Se genera un propuesta inicial de configuracion para el despliegue con kubernates, se observa que actualmente la app es data intensive y bajo en computo
 A futuro implementar alguna herramienta de observabilidad y monitoreo
 Analizar tráfico para implementar politicas de autoescalado y desescalado de contenedores
+
+## Extra
+Si en un futuro la app sigue creciendo su estructura actual se hace poco viable y buscaria estructurarlo en modulos para mejorar su orden, legibilidad y mantenibilidad
